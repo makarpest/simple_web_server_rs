@@ -97,8 +97,16 @@ impl ThreadPool {
 
 impl Drop for ThreadPool {
     fn drop(&mut self) {
+        println!("Всем работникам отправлено сообщение о завершении работы.");
+
+        for _ in &mut self.workers {
+            self.sender.send(Message::Terminare).unwrap();
+        }
+
+        println!("Все работники завершают работу.");
+
         for worker in &mut self.workers {
-            println!("Отключение работника {}", worker.id);
+            println!("Выключается работник {}.", worker.id);
 
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
