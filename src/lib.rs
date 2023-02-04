@@ -13,6 +13,12 @@ impl<F: FnOnce()> FnBox for F {
 }
 
 
+enum Message {
+    NewJob(Job),
+    Terminare
+}
+
+
 
 struct Worker {
     id: usize,
@@ -21,26 +27,35 @@ struct Worker {
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
-    sender: mpsc::Sender<Job>,
+    sender: mpsc::Sender<Message>,
 }
 
 type Job = Box<dyn FnBox + Send + 'static>;
 
 impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let thread = Some(thread::spawn(move || {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
+        let thread = thread::spawn(move || {
             loop {
-                let job = receiver.lock().unwrap().recv().unwrap();
+                let message = receiver.lock().unwrap().recv().unwrap();
 
-                println!("Работник {id} получил задание; исполняется.");
+                match message {
+                    Message::NewJob(job) => {
+                        println!("Работник {} получил задание; исполняется.", id);
 
-                job.call_box();
+                        job.call_box();
+                    },
+                    Message::Terminare => {
+                        println!("Работнику {} сказано завершить работу.", id);
+
+                        break
+                    },
+                }
             }
-        }));
+        });
 
         Worker {
             id,
-            thread,
+            thread: Some(thread),
         }
     }
 }
@@ -73,7 +88,7 @@ impl ThreadPool {
     {
         let job = Box::new(f);
 
-        self.sender.send(job).unwrap();
+        self.sender.send(Message::NewJob(Job)).unwrap();
     }
 }
 
