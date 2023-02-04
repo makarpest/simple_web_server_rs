@@ -19,7 +19,6 @@ enum Message {
 }
 
 
-
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
@@ -31,6 +30,7 @@ pub struct ThreadPool {
 }
 
 type Job = Box<dyn FnBox + Send + 'static>;
+
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
@@ -60,6 +60,8 @@ impl Worker {
     }
 }
 
+
+
 impl ThreadPool {
     /// fn new will panic if it's size == 0
     ///
@@ -88,7 +90,7 @@ impl ThreadPool {
     {
         let job = Box::new(f);
 
-        self.sender.send(Message::NewJob(Job)).unwrap();
+        self.sender.send(Message::NewJob(job)).unwrap();
     }
 }
 
