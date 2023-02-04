@@ -40,12 +40,12 @@ impl Worker {
 
                 match message {
                     Message::NewJob(job) => {
-                        println!("Работник {} получил задание; исполняется.", id);
+                        println!("Работник {id} получил задание; исполняется.");
 
                         job.call_box();
                     },
                     Message::Terminare => {
-                        println!("Работнику {} сказано завершить работу.", id);
+                        println!("Работнику {id} сказано завершить работу.");
 
                         break
                     },

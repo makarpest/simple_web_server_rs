@@ -1,6 +1,6 @@
 use std::{ thread, fs, io::prelude::* };
 use std::net::{ TcpListener, TcpStream };
-use std::thread::Thread;
+
 use hello_web::ThreadPool;
 
 
@@ -16,8 +16,8 @@ fn main() {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let mut buffer = [0; 512];
-    stream.read(&mut buffer).unwrap();
+    let mut buffer = vec![0; 512];
+    stream.read_exact(&mut buffer).unwrap();
 
     let get = b"GET / HTTP/1.1\r\n";
     let sleep = b"GET /sleep HTTP/1.1\r\n";
@@ -41,6 +41,6 @@ fn handle_connection(mut stream: TcpStream) {
     let cont = fs::read_to_string(filename).unwrap();
     let resp = format!("{status}{cont}");
 
-    stream.write(resp.as_bytes()).unwrap();
+    stream.write_all(resp.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
